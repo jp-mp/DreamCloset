@@ -17,13 +17,29 @@ class WeatherController extends Controller
             'longitude' => ['required', 'numeric', 'between:-180,180'],
         ]);
 
+        return $this->forecast((float) $coordinates['latitude'], (float) $coordinates['longitude']);
+    }
+
+    public function saved(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        if ($user->latitude === null || $user->longitude === null) {
+            return response()->json(['message' => 'Choose and save a location first.'], 422);
+        }
+
+        return $this->forecast($user->latitude, $user->longitude);
+    }
+
+    private function forecast(float $latitude, float $longitude): JsonResponse
+    {
         try {
             $forecast = Http::acceptJson()
                 ->connectTimeout(3)
                 ->timeout(10)
                 ->get('https://api.open-meteo.com/v1/forecast', [
-                    'latitude' => (float) $coordinates['latitude'],
-                    'longitude' => (float) $coordinates['longitude'],
+                    'latitude' => $latitude,
+                    'longitude' => $longitude,
                     'timezone' => 'auto',
                     'forecast_days' => 8,
                     'temperature_unit' => 'celsius',
