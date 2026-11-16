@@ -1,40 +1,40 @@
 <!DOCTYPE html>
 <html lang="es">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title') · DreamCloset</title>
-    <style>
-        * { box-sizing: border-box; }
-        body { margin: 0; background: #f8f8f5; color: #263e48; font: 1rem/1.5 system-ui, sans-serif; }
-        main { width: min(100% - 2rem, 30rem); margin: 4rem auto; }
-        .panel { padding: 2rem; background: white; border: 1px solid #ddded8; border-radius: 1rem; }
-        h1 { font-family: Georgia, serif; font-weight: normal; }
-        label { display: block; margin-top: 1rem; }
-        input { width: 100%; padding: .75rem; border: 1px solid #b4bdbd; border-radius: .5rem; font: inherit; }
-        button { margin-top: 1.5rem; padding: .8rem 1.2rem; border: 0; border-radius: .5rem; background: #263e48; color: white; font: inherit; cursor: pointer; }
-        a { color: #263e48; }
-        .errors { color: #972e21; }
-        input:focus-visible, button:focus-visible, a:focus-visible { outline: 3px solid #d77d58; outline-offset: 3px; }
-    </style>
-</head>
-<body>
-<main>
-    <a href="{{ url('/') }}">DreamCloset</a>
-    <section class="panel">
-        <h1>@yield('title')</h1>
-        @if ($errors->any())
-            <div class="errors" role="alert">
-                <ul>
-                    @foreach ($errors->all() as $error)
-                        <li>{{ $error }}</li>
-                    @endforeach
-                </ul>
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+        <title>@yield('title') · DreamCloset</title>
+        @fonts(['dm-sans', 'newsreader'])
+        @vite('resources/css/app.css')
+    </head>
+    <body class="dreamcloset-shell flex min-h-screen flex-col bg-canvas font-interface text-ink antialiased">
+        <header class="border-b border-line">
+            <div class="mx-auto flex min-h-[65px] max-w-shell items-center px-4 sm:px-6 md:min-h-[77px] lg:px-8">
+                <x-brand :href="url('/')" class="text-lg" />
             </div>
-        @endif
-        @yield('content')
-    </section>
-</main>
-</body>
+        </header>
+
+        <main class="mx-auto grid w-full max-w-lg flex-1 items-center px-4 py-8 sm:px-6 sm:py-10">
+            <x-panel aria-labelledby="auth-title">
+                <div class="mb-6 grid gap-2.5">
+                    <p class="text-xs font-bold tracking-widest text-muted uppercase">Tu clóset virtual</p>
+                    <h1 id="auth-title" class="font-heading text-[2.5rem] leading-none font-semibold tracking-tight text-balance sm:text-5xl">@yield('title')</h1>
+                    <p class="text-sm leading-relaxed text-muted">@yield('description')</p>
+                </div>
+
+                @if ($errors->any())
+                    <p role="alert" class="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-800">
+                        Revisa los campos indicados e inténtalo de nuevo.
+                    </p>
+                @endif
+
+                @yield('content')
+            </x-panel>
+        </main>
+
+        <footer class="border-t border-line px-4 py-5 text-center text-sm text-muted">
+            Tu clóset, tu clima, tu outfit ideal.
+        </footer>
+    </body>
 </html>

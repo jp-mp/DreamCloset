@@ -6,4 +6,45 @@
 @theme {
     --font-sans: 'Instrument Sans', ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji',
         'Segoe UI Symbol', 'Noto Color Emoji';
+    --color-canvas: #f8f8f5;
+    --color-ink: #273c46;
+    --color-muted: #647078;
+    --color-accent: #ca876d;
+    --color-line: #deded8;
+    --radius-card: 1.125rem;
+    --radius-panel: 1.5rem;
+    --container-shell: 80rem;
+    --text-display: clamp(2.5rem, 5vw, 3.6rem);
+    --text-display--line-height: 1;
+}
+
+@theme inline {
+    --font-interface: var(--font-dm-sans, 'DM Sans', system-ui, sans-serif);
+    --font-heading: var(--font-newsreader, 'Newsreader', Georgia, serif);
+}
+
+@layer base {
+    .dreamcloset-shell :focus-visible {
+        outline: 2px solid var(--color-ink);
+        outline-offset: 3px;
+    }
+}
+
+@layer components {
+    .dc-action-primary,
+    .dc-action-secondary {
+        @apply inline-flex min-h-12 cursor-pointer items-center justify-center rounded-xl px-5 py-2.5 text-center text-sm font-bold;
+    }
+
+    .dc-action-primary {
+        @apply bg-ink text-white hover:bg-ink/90;
+    }
+
+    .dc-action-secondary {
+        @apply border border-muted bg-white text-ink hover:bg-canvas;
+    }
+
+    .dreamcloset-shell .bg-ink :focus-visible {
+        outline-color: white;
+    }
 }

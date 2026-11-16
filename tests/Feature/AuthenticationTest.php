@@ -7,6 +7,10 @@ use Illuminate\Support\Facades\Hash;
 
 uses(LazilyRefreshDatabase::class);
 
+beforeEach(function () {
+    $this->withoutVite();
+});
+
 test('guests can open registration and login', function () {
     $this->get('/register')->assertOk()->assertSee('Crear una cuenta');
     $this->get('/login')->assertOk()->assertSee('Iniciar sesión');
