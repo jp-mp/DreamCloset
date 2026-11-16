@@ -4,17 +4,15 @@
 
 @section('content')
     @php
-        $categories = [
-            'top' => 'Parte superior',
-            'bottom' => 'Parte inferior',
-            'outerwear' => 'Abrigo',
-            'footwear' => 'Calzado',
-        ];
+        $categories = \App\Models\ClothingItem::CATEGORIES;
         $requestedCategory = request()->query('category');
         $category = is_string($requestedCategory) && isset($categories[$requestedCategory]) ? $requestedCategory : '';
     @endphp
 
-    <div data-closet="{{ route('clothing.index', absolute: false) }}" data-category="{{ $category }}" class="grid gap-6">
+    <div data-closet="{{ route('clothing.index', absolute: false) }}"
+        data-delete-url="{{ route('clothing.destroy', ['clothingItem' => '__item__'], absolute: false) }}"
+        data-style-url="{{ route('clothing.style', ['clothingItem' => '__item__'], absolute: false) }}"
+        data-csrf="{{ csrf_token() }}" data-category="{{ $category }}" class="grid gap-6">
         <header class="flex flex-wrap items-end justify-between gap-4">
             <div class="grid gap-3">
                 <p class="text-xs font-bold tracking-widest text-muted uppercase">Tu espacio personal</p>
@@ -60,15 +58,43 @@
 
         <template data-closet-item>
             <li class="overflow-hidden rounded-card border border-line bg-white">
-                <div class="grid aspect-[4/3] place-items-center border-b border-line bg-[#eeece6]">
-                    <span class="rounded-full border border-line bg-white/75 px-3 py-1 text-xs font-medium text-muted">Sin foto</span>
+                <div class="relative grid aspect-[4/3] place-items-center border-b border-line bg-[#eeece6]">
+                    <img data-item-photo hidden loading="lazy" alt="" class="absolute inset-0 size-full object-contain">
+                    <span data-item-placeholder class="rounded-full border border-line bg-white/75 px-3 py-1 text-xs font-medium text-muted">Sin foto</span>
                 </div>
                 <div class="grid gap-1.5 p-5">
                     <p data-item-category class="text-xs font-bold tracking-wider text-muted uppercase"></p>
                     <h2 data-item-name class="wrap-anywhere font-heading text-2xl font-semibold"></h2>
                     <p data-item-color hidden class="wrap-anywhere text-sm text-muted"></p>
+                    <label class="mt-2 grid w-fit gap-1 text-sm font-semibold">
+                        Estilo
+                        <select data-item-style class="min-h-10 rounded-lg border border-muted bg-white px-2 py-1 text-sm font-normal text-ink">
+                            <option value="">Cualquier estilo</option>
+                            @foreach (\App\Models\ClothingItem::STYLES as $value => $label)
+                                <option value="{{ $value }}">{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <p data-style-status role="status" class="text-xs text-muted empty:hidden"></p>
+                    <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-line pt-3">
+                        <a data-item-edit class="dc-action-secondary">Editar</a>
+                        <button data-item-delete type="button" class="min-h-11 rounded-lg px-3 text-sm font-bold text-red-800 hover:bg-red-50">Eliminar</button>
+                    </div>
                 </div>
             </li>
         </template>
+
+        <dialog data-delete-dialog aria-labelledby="delete-garment-title" aria-describedby="delete-garment-note"
+            class="m-auto w-[min(90vw,26rem)] rounded-panel border border-line bg-white p-6 text-ink shadow-xl backdrop:bg-ink/40">
+            <form method="dialog" class="grid gap-4">
+                <h2 id="delete-garment-title" class="font-heading text-3xl font-semibold">Eliminar prenda</h2>
+                <p id="delete-garment-note" class="wrap-anywhere text-muted">Se eliminará <strong data-delete-name></strong> de tu clóset junto con su foto.</p>
+                <p data-delete-status role="status" class="text-sm text-red-800 empty:hidden"></p>
+                <div class="flex flex-wrap gap-2">
+                    <button data-delete-cancel type="submit" class="dc-action-secondary disabled:opacity-60" autofocus>Cancelar</button>
+                    <button data-delete-confirm type="button" class="min-h-11 rounded-xl bg-red-800 px-4 py-2 text-sm font-bold text-white hover:bg-red-900 disabled:opacity-60">Eliminar prenda</button>
+                </div>
+            </form>
+        </dialog>
     </div>
 @endsection

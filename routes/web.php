@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ClothingItemController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -22,4 +23,5 @@ Route::middleware('auth')->group(function () {
     Route::view('/mi-semana', 'week.index')->name('week.index');
     Route::view('/mi-closet', 'closet.index')->name('closet.index');
     Route::view('/mi-closet/agregar', 'closet.create')->name('closet.create');
+    Route::get('/mi-closet/{clothingItem}/editar', [ClothingItemController::class, 'edit'])->name('closet.edit');
 });

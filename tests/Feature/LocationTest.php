@@ -88,7 +88,7 @@ test('saved location persists across logout and a fresh login', function () {
     $user = User::factory()->create(['email' => 'ana@example.com']);
     $this->actingAs($user)->putJson('/api/v1/me/location', ['name' => 'Santiago', 'latitude' => -33.3, 'longitude' => -70.6])->assertOk();
     $this->post('/logout')->assertRedirectToRoute('login');
-    $this->post('/login', ['email' => 'ana@example.com', 'password' => 'password'])->assertRedirectToRoute('account.show');
+    $this->post('/login', ['email' => 'ana@example.com', 'password' => 'password'])->assertRedirectToRoute('home');
 
     $this->getJson('/api/v1/me/location')->assertOk()->assertJsonPath('data.name', 'Santiago');
 });

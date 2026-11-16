@@ -1,4 +1,6 @@
-function saveForm(form, saved) {
+import { mountGarmentPhoto } from './garment-photo.js';
+
+function saveForm(form, saved, body = () => new URLSearchParams(new FormData(form))) {
     const submit = form.querySelector('[type=submit]');
     const status = form.querySelector('[data-save-status]');
     const fieldErrors = [];
@@ -27,7 +29,7 @@ function saveForm(form, saved) {
             const response = await fetch(form.action, {
                 method: 'POST',
                 headers: { Accept: 'application/json' },
-                body: new URLSearchParams(new FormData(form)),
+                body: body(),
             });
 
             if (response.status === 422) {
@@ -72,10 +74,16 @@ function saveForm(form, saved) {
 }
 
 export function mountGarmentForm(form) {
+    const writePhoto = mountGarmentPhoto(form);
+
     saveForm(form, () => {
-        form.reset();
         window.location.replace(form.dataset.returnUrl);
         return 'Prenda guardada.';
+    }, () => {
+        const body = new FormData(form);
+        body.set('waterproof', form.elements.namedItem('waterproof').checked ? '1' : '0');
+        writePhoto(body);
+        return body;
     });
 }
 

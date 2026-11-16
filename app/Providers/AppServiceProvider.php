@@ -22,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        RateLimiter::for('clothing-photos', fn (Request $request) => Limit::perMinute(5)->by($request->user()->id));
+        RateLimiter::for('outfits', fn (Request $request) => Limit::perMinute(10)->by($request->user()->id));
+
         RateLimiter::for('login', function (Request $request) {
             $email = $request->input('email');
             $identifier = is_string($email) ? mb_strtolower(trim($email)) : '';

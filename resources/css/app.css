@@ -48,3 +48,9 @@
         outline-color: white;
     }
 }
+
+.dc-photo-transparency {
+    background-color: #f6f4f0;
+    background-image: repeating-conic-gradient(#e5ded3 0% 25%, transparent 0% 50%);
+    background-size: 18px 18px;
+}

@@ -10,6 +10,8 @@
             <p class="text-muted">Consulta el clima antes de elegir qué ponerte.</p>
         </header>
 
+        <x-outfit-recommendations period="today" />
+
         <x-panel aria-labelledby="clima-actual" tone="ink">
             <div class="grid gap-4">
                 <p class="wrap-anywhere text-xs font-bold tracking-widest text-white/75 uppercase">
@@ -33,24 +35,6 @@
                 </div>
             </div>
         </x-panel>
-
-        <section aria-labelledby="outfit-demo" class="grid gap-5 rounded-panel border border-line bg-white p-3 sm:p-4 md:grid-cols-2 md:items-center md:gap-8">
-            <img src="{{ asset('images/outfit-demo.webp') }}" alt="Polera blanca, sobrecamisa verde, jeans y zapatillas claras sobre lino" class="aspect-[4/5] w-full rounded-card bg-canvas object-cover" width="900" height="1125" loading="lazy">
-            <div class="grid gap-4 px-3 pb-4 sm:px-4 md:py-5">
-                <p class="justify-self-start rounded-full bg-[#f0e3db] px-3 py-1.5 text-xs font-bold">Recomendación de ejemplo</p>
-                <h2 id="outfit-demo" class="font-heading text-4xl leading-none font-semibold sm:text-5xl">Tu outfit de hoy</h2>
-                <p class="text-muted">Una combinación de muestra para un día fresco.</p>
-                <ul class="grid grid-cols-2 gap-2.5 text-sm font-medium">
-                    @foreach (['Polera blanca', 'Sobrecamisa verde', 'Jeans rectos', 'Zapatillas claras'] as $garment)
-                        <li class="rounded-xl border border-line bg-canvas px-3 py-2">{{ $garment }}</li>
-                    @endforeach
-                </ul>
-                <div class="rounded-xl bg-canvas p-4">
-                    <h3 class="text-sm font-bold">Por qué funciona</h3>
-                    <p class="mt-1 text-sm text-muted">Una sobrecamisa permite ajustar el abrigo si cambia la temperatura.</p>
-                </div>
-            </div>
-        </section>
 
         <section aria-labelledby="proximos-dias" class="grid gap-4">
             <div class="flex flex-wrap items-center justify-between gap-3">

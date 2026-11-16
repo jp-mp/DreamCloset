@@ -72,7 +72,7 @@ test('logs in an existing user and regenerates the session', function () {
     $previousSessionId = session()->getId();
 
     $this->post('/login', ['email' => 'ANA@example.com', 'password' => 'password'])
-        ->assertRedirectToRoute('account.show');
+        ->assertRedirectToRoute('home');
 
     $this->assertAuthenticatedAs($user);
     expect(session()->getId())->not->toBe($previousSessionId);
@@ -120,8 +120,8 @@ test('guests are redirected to login for the account page', function () {
 test('authenticated users are redirected away from login and registration', function () {
     $this->actingAs(User::factory()->create());
 
-    $this->get('/login')->assertRedirectToRoute('account.show');
-    $this->get('/register')->assertRedirectToRoute('account.show');
+    $this->get('/login')->assertRedirectToRoute('home');
+    $this->get('/register')->assertRedirectToRoute('home');
 });
 
 test('account output escapes the user name', function () {
@@ -149,7 +149,7 @@ test('a login cookie authenticates later api requests with csrf protected writes
 
     $response = $this->post('/login', [
         '_token' => 'test-csrf-token', 'email' => 'ana@example.com', 'password' => 'password',
-    ])->assertRedirectToRoute('account.show');
+    ])->assertRedirectToRoute('home');
 
     $response->assertCookie(config('session.cookie'));
     $sessionCookie = $response->getCookie(config('session.cookie'));
@@ -161,4 +161,12 @@ test('a login cookie authenticates later api requests with csrf protected writes
         ->assertOk()->assertJsonPath('data.name', 'Santiago');
 
     $this->assertDatabaseHas('users', ['email' => 'ana@example.com', 'location_name' => 'Santiago']);
+});
+
+test('login still opens the protected section the member originally requested', function () {
+    $user = User::factory()->create();
+    $this->get('/mi-semana')->assertRedirectToRoute('login');
+
+    $this->post('/login', ['email' => $user->email, 'password' => 'password'])
+        ->assertRedirectToRoute('week.index');
 });

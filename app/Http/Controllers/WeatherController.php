@@ -2,14 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\WeatherForecast;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Http;
 
 class WeatherController extends Controller
 {
+    public function __construct(private WeatherForecast $weather) {}
+
     public function show(Request $request): JsonResponse
     {
         $coordinates = $request->validate([
@@ -34,23 +36,7 @@ class WeatherController extends Controller
     private function forecast(float $latitude, float $longitude): JsonResponse
     {
         try {
-            $forecast = Http::acceptJson()
-                ->connectTimeout(3)
-                ->timeout(10)
-                ->get('https://api.open-meteo.com/v1/forecast', [
-                    'latitude' => $latitude,
-                    'longitude' => $longitude,
-                    'timezone' => 'auto',
-                    'forecast_days' => 8,
-                    'temperature_unit' => 'celsius',
-                    'wind_speed_unit' => 'kmh',
-                    'precipitation_unit' => 'mm',
-                    'current' => 'temperature_2m,apparent_temperature,weather_code,precipitation,wind_speed_10m',
-                    'hourly' => 'temperature_2m,apparent_temperature,precipitation_probability,weather_code,wind_speed_10m',
-                    'daily' => 'temperature_2m_max,temperature_2m_min,apparent_temperature_max,apparent_temperature_min,precipitation_probability_max,uv_index_max,weather_code,wind_speed_10m_max',
-                ])
-                ->throw()
-                ->json();
+            $forecast = $this->weather->get($latitude, $longitude);
         } catch (ConnectionException|RequestException $exception) {
             report($exception);
 
@@ -59,7 +45,7 @@ class WeatherController extends Controller
             ], 502);
         }
 
-        if (! is_array($forecast) || ! isset($forecast['current'], $forecast['hourly'], $forecast['daily'])) {
+        if ($forecast === null) {
             return response()->json([
                 'message' => 'The weather provider returned an unexpected response. Please try again later.',
             ], 502);
