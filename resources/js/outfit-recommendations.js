@@ -12,6 +12,15 @@ export function mountRecommendations(root, weatherReady) {
     const closet = root.querySelector('[data-outfit-closet]');
     const list = root.querySelector('[data-outfit-list]');
     const dayTemplate = root.querySelector('[data-outfit-day]');
+    const initialLabel = button.textContent;
+    const anotherLabel = root.dataset.period === 'today' ? 'Ver otro outfit' : 'Ver otros outfits';
+    let lastStyle;
+    let lastOutfits = [];
+    let recent = [];
+
+    function updateButtonLabel() {
+        button.textContent = lastOutfits.length && style.value === lastStyle ? anotherLabel : initialLabel;
+    }
     const visibleOutfits = new IntersectionObserver((entries, observer) => {
         for (const entry of entries) {
             if (entry.isIntersecting) {
@@ -62,8 +71,24 @@ export function mountRecommendations(root, weatherReady) {
         }
 
         const body = new FormData(form);
+        const requestedStyle = body.get('style');
+        const askingForAnother = !automatic && lastOutfits.length > 0 && requestedStyle === lastStyle;
         if (automatic) {
             body.set('automatic', '1');
+        }
+        if (askingForAnother) {
+            for (const outfit of lastOutfits) {
+                for (const garment of outfit.garments) {
+                    body.append('previous[' + outfit.date + '][]', garment.id);
+                }
+            }
+            for (const [index, outfits] of recent.entries()) {
+                for (const outfit of outfits) {
+                    for (const garment of outfit.garments) {
+                        body.append('recent[' + outfit.date + '][' + index + '][]', garment.id);
+                    }
+                }
+            }
         }
         button.disabled = true;
         style.disabled = true;
@@ -88,13 +113,29 @@ export function mountRecommendations(root, weatherReady) {
                 return;
             }
 
+            const sameOutfits = askingForAnother && data.outfits.length === lastOutfits.length
+                && data.outfits.every((outfit, index) => {
+                    const previous = lastOutfits[index];
+                    return outfit.date === previous.date && outfit.garments.length === previous.garments.length
+                        && outfit.garments.every((garment, position) => garment.id === previous.garments[position].id);
+                });
+            if (sameOutfits) {
+                status.textContent = 'Las prendas disponibles para este clima y estilo dan la misma combinación.';
+                return;
+            }
+
+            recent = askingForAnother ? [lastOutfits, ...recent].slice(0, 5) : [];
+            lastOutfits = data.outfits;
+            lastStyle = requestedStyle;
+            updateButtonLabel();
             visibleOutfits.disconnect();
             const cutoutCache = new Map();
             list.replaceChildren(...data.outfits.map((day) => renderDay(day, cutoutCache)));
-            const requestedStyle = body.get('style');
             const matchesStyle = data.outfits.some((outfit) => outfit.garments.some((garment) => garment.style === requestedStyle));
             if (data.source === 'groq') {
                 status.textContent = 'Recomendación generada con IA.';
+            } else if (data.source === 'mixed') {
+                status.textContent = 'Combinaciones variadas según el clima y tus prendas.';
             } else if (requestedStyle && !matchesStyle) {
                 status.textContent = 'Mostramos prendas adecuadas para el clima. Puedes etiquetar más prendas con este estilo en Mi clóset.';
             } else {
@@ -107,6 +148,8 @@ export function mountRecommendations(root, weatherReady) {
             style.disabled = false;
         }
     }
+
+    style.addEventListener('change', updateButtonLabel);
 
     form.addEventListener('submit', (event) => {
         event.preventDefault();

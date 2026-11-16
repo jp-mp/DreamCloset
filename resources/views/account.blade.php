@@ -29,6 +29,40 @@
                     </dd>
                 </div>
             </dl>
+
+            <form id="editar-nombre" method="POST" action="{{ route('account.name') }}"
+                class="mt-4 grid scroll-mt-28 gap-3 border-t border-line pt-4">
+                @csrf
+                @method('PATCH')
+                <x-form-field name="profile_name" label="Nombre de usuario" :value="old('profile_name', $user->name)" autocomplete="name" maxlength="100" required />
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="submit" class="dc-action-secondary">Guardar nombre</button>
+                    @if (session('profile_name_status'))
+                        <p role="status" class="text-sm text-muted">{{ session('profile_name_status') }}</p>
+                    @endif
+                </div>
+            </form>
+
+            <form id="easter-eggs" method="POST" action="{{ route('account.easter-eggs') }}" class="mt-4 flex scroll-mt-28 flex-wrap items-center justify-between gap-3 border-t border-line pt-4">
+                @csrf
+                @method('PATCH')
+                <div class="grid gap-1">
+                    <p id="easter-eggs-label" class="text-sm font-bold">Easter eggs</p>
+                    <p id="easter-eggs-description" class="text-sm text-muted">Muestra una bebida alcohólica del día en Inicio.</p>
+                    @error('easter_eggs')
+                        <p class="text-sm text-red-700">{{ $message }}</p>
+                    @enderror
+                </div>
+                <button type="submit" role="switch" aria-checked="{{ $user->easter_eggs ? 'true' : 'false' }}"
+                    aria-labelledby="easter-eggs-label" aria-describedby="easter-eggs-description"
+                    name="easter_eggs" value="{{ $user->easter_eggs ? '0' : '1' }}"
+                    class="group inline-flex min-h-11 items-center gap-2 rounded-xl px-2 text-sm font-semibold focus-visible:outline-2 focus-visible:outline-offset-2">
+                    <span aria-hidden="true" class="relative h-6 w-11 rounded-full bg-[#a1acb0] transition-colors group-aria-checked:bg-ink">
+                        <span class="absolute top-1 left-1 size-4 rounded-full bg-white shadow-sm transition-transform group-aria-checked:translate-x-5"></span>
+                    </span>
+                    <span aria-hidden="true">{{ $user->easter_eggs ? 'Activado' : 'Desactivado' }}</span>
+                </button>
+            </form>
         </x-panel>
 
         <x-panel id="ubicacion" aria-labelledby="editar-ubicacion" class="scroll-mt-24">

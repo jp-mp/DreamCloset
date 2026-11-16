@@ -1,4 +1,5 @@
 import { mountCloset } from './closet.js';
+import { mountDailyDrink } from './daily-drink.js';
 import { mountGarmentForm, mountLocationForm } from './edit-forms.js';
 import { mountRecommendations } from './outfit-recommendations.js';
 import { mountWeather } from './weather.js';
@@ -24,6 +25,11 @@ if (closet) {
 const recommendations = document.querySelector('[data-outfits]');
 if (recommendations) {
     mountRecommendations(recommendations, weatherReady);
+}
+
+const dailyDrink = document.querySelector('[data-daily-drink]');
+if (dailyDrink) {
+    mountDailyDrink(dailyDrink);
 }
 
 const mobileMenu = document.querySelector('[data-mobile-menu]');

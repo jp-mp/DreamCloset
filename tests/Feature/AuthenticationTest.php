@@ -170,3 +170,17 @@ test('login still opens the protected section the member originally requested', 
     $this->post('/login', ['email' => $user->email, 'password' => 'password'])
         ->assertRedirectToRoute('week.index');
 });
+
+test('a signed in member can change their own display name', function () {
+    $member = User::factory()->create(['name' => 'Nombre original']);
+    $route = route('account.name');
+    $this->patch($route, ['profile_name' => 'Luz'])->assertRedirectToRoute('login');
+
+    $this->actingAs($member)->patchJson($route, ['profile_name' => '   '])
+        ->assertUnprocessable()->assertJsonValidationErrors('profile_name');
+
+    $this->patch($route, ['profile_name' => '  Luz Rojas  ', 'email' => 'different@example.com'])
+        ->assertRedirect(route('account.show').'#editar-nombre');
+    $this->assertDatabaseHas('users', ['id' => $member->id, 'name' => 'Luz Rojas', 'email' => $member->email]);
+    $this->get(route('home'))->assertSeeText('Hola, Luz');
+});
