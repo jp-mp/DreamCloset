@@ -20,7 +20,7 @@
                 </div>
                 <div class="grid gap-1 border-t border-line pt-4">
                     <dt class="text-sm font-bold">Ubicación guardada</dt>
-                    <dd class="wrap-anywhere text-muted">
+                    <dd data-saved-location class="wrap-anywhere text-muted">
                         @if ($user->latitude !== null && $user->longitude !== null)
                             {{ $user->location_name ?? 'Mi ubicación' }}
                         @else
@@ -29,6 +29,32 @@
                     </dd>
                 </div>
             </dl>
+        </x-panel>
+
+        <x-panel id="ubicacion" aria-labelledby="editar-ubicacion" class="scroll-mt-24">
+            <h2 id="editar-ubicacion" class="font-heading text-3xl font-semibold">Editar ubicación</h2>
+            <p class="mt-2 text-sm text-muted">Usaremos esta ubicación para mostrar tu pronóstico en Inicio y Mi semana.</p>
+
+            <form method="POST" action="{{ route('location.update', absolute: false) }}" data-location-form class="mt-5 grid gap-4">
+                @csrf
+                @method('PUT')
+
+                <div>
+                    <button type="button" data-geolocate class="dc-action-secondary disabled:opacity-60">Usar mi ubicación</button>
+                    <p data-geolocation-status role="status" class="mt-2 text-sm text-muted"></p>
+                </div>
+
+                <x-form-field name="name" label="Nombre de la ubicación (opcional)" :value="$user->location_name" maxlength="120" placeholder="Por ejemplo, Santiago" />
+                <div class="grid gap-4 sm:grid-cols-2">
+                    <x-form-field name="latitude" label="Latitud" type="number" step="any" min="-90" max="90" :value="$user->latitude" required />
+                    <x-form-field name="longitude" label="Longitud" type="number" step="any" min="-180" max="180" :value="$user->longitude" required />
+                </div>
+
+                <div class="flex flex-wrap items-center gap-3">
+                    <button type="submit" class="dc-action-primary disabled:opacity-60">Guardar ubicación</button>
+                    <p data-save-status role="status" class="text-sm text-muted"></p>
+                </div>
+            </form>
         </x-panel>
 
         <div class="grid gap-3 sm:flex sm:flex-wrap">

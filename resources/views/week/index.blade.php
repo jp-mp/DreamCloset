@@ -13,7 +13,7 @@
         </header>
         <section aria-label="Pronóstico semanal">
             <x-data-status loading="Cargando el pronóstico…" class="rounded-card border border-line bg-white px-5 py-6">
-                <a href="{{ route('account.show') }}" data-weather-account hidden class="mt-3 rounded-sm text-sm font-bold underline underline-offset-4">Ver mi cuenta</a>
+                <a href="{{ route('account.show') }}#ubicacion" data-weather-account hidden class="mt-3 rounded-sm text-sm font-bold underline underline-offset-4">Configurar ubicación</a>
             </x-data-status>
             <x-forecast-days />
         </section>

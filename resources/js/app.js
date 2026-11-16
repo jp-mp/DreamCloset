@@ -1,5 +1,16 @@
 import { mountCloset } from './closet.js';
+import { mountGarmentForm, mountLocationForm } from './edit-forms.js';
 import { mountWeather } from './weather.js';
+
+const locationForm = document.querySelector('[data-location-form]');
+if (locationForm) {
+    mountLocationForm(locationForm);
+}
+
+const garmentForm = document.querySelector('[data-garment-form]');
+if (garmentForm) {
+    mountGarmentForm(garmentForm);
+}
 
 const weather = document.querySelector('[data-weather]');
 if (weather) {

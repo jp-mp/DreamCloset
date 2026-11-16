@@ -18,7 +18,7 @@
                 </p>
                 <h2 id="clima-actual" class="font-heading text-3xl font-semibold">Clima de hoy</h2>
                 <x-data-status loading="Cargando el clima…">
-                    <a href="{{ route('account.show') }}" data-weather-account hidden class="mt-3 rounded-sm text-sm font-bold underline underline-offset-4">Ver mi cuenta</a>
+                    <a href="{{ route('account.show') }}#ubicacion" data-weather-account hidden class="mt-3 rounded-sm text-sm font-bold underline underline-offset-4">Configurar ubicación</a>
                 </x-data-status>
                 <div data-weather-current hidden class="grid gap-5">
                     <div class="flex flex-wrap items-center gap-x-6 gap-y-2">

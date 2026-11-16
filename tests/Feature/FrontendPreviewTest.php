@@ -6,6 +6,7 @@ dataset('product sections', [
     'home' => ['/inicio', 'Inicio', 'home'],
     'week' => ['/mi-semana', 'Mi semana', 'week.index'],
     'closet' => ['/mi-closet', 'Mi clóset', 'closet.index'],
+    'create garment' => ['/mi-closet/agregar', 'Agregar prenda', 'closet.create'],
 ]);
 
 test('guests must sign in before opening a product section', function (string $path) {

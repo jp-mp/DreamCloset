@@ -21,4 +21,5 @@ Route::middleware('auth')->group(function () {
     Route::view('/inicio', 'home')->name('home');
     Route::view('/mi-semana', 'week.index')->name('week.index');
     Route::view('/mi-closet', 'closet.index')->name('closet.index');
+    Route::view('/mi-closet/agregar', 'closet.create')->name('closet.create');
 });

@@ -15,10 +15,13 @@
     @endphp
 
     <div data-closet="{{ route('clothing.index', absolute: false) }}" data-category="{{ $category }}" class="grid gap-6">
-        <header class="grid gap-3">
-            <p class="text-xs font-bold tracking-widest text-muted uppercase">Tu espacio personal</p>
-            <h1 class="font-heading text-display font-semibold tracking-tight">Mi clóset</h1>
-            <p class="text-muted">Todas tus prendas, organizadas en un solo lugar.</p>
+        <header class="flex flex-wrap items-end justify-between gap-4">
+            <div class="grid gap-3">
+                <p class="text-xs font-bold tracking-widest text-muted uppercase">Tu espacio personal</p>
+                <h1 class="font-heading text-display font-semibold tracking-tight">Mi clóset</h1>
+                <p class="text-muted">Todas tus prendas, organizadas en un solo lugar.</p>
+            </div>
+            <a href="{{ route('closet.create') }}" class="dc-action-primary">Agregar prenda</a>
         </header>
 
         <nav aria-label="Categorías de prendas" class="mt-2 border-b border-line">
