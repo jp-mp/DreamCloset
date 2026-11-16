@@ -20,6 +20,13 @@ class OutfitController extends Controller
             'period' => ['required', 'string', Rule::in(['today', 'week'])],
             'style' => ['nullable', 'string', Rule::in(array_keys(ClothingItem::STYLES))],
             'automatic' => ['sometimes', 'boolean'],
+            'previous' => ['sometimes', 'array', 'max:7'],
+            'previous.*' => ['required', 'array', 'max:6'],
+            'previous.*.*' => ['required', 'integer', 'min:1'],
+            'recent' => ['sometimes', 'array', 'max:7'],
+            'recent.*' => ['required', 'array', 'max:5'],
+            'recent.*.*' => ['required', 'array', 'max:6'],
+            'recent.*.*.*' => ['required', 'integer', 'min:1'],
         ]);
 
         $user = $request->user();
@@ -49,6 +56,11 @@ class OutfitController extends Controller
             $forecast,
             $items,
             automatic: $request->boolean('automatic'),
+            previous: array_map(
+                fn (array $ids): array => array_map('intval', $ids),
+                $options['previous'] ?? [],
+            ),
+            recent: $options['recent'] ?? [],
         );
 
         if ($result === null) {

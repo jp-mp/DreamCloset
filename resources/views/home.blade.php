@@ -12,6 +12,10 @@
 
         <x-outfit-recommendations period="today" />
 
+        @if ($drink)
+            <x-daily-drink :drink="$drink" />
+        @endif
+
         <x-panel aria-labelledby="clima-actual" tone="ink">
             <div class="grid gap-4">
                 <p class="wrap-anywhere text-xs font-bold tracking-widest text-white/75 uppercase">

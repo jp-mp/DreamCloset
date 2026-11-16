@@ -63,6 +63,27 @@ class AuthController extends Controller
         return view('account', ['user' => $request->user()]);
     }
 
+    public function updateName(Request $request): RedirectResponse
+    {
+        $attributes = $request->validate(['profile_name' => ['required', 'string', 'max:100']]);
+
+        $request->user()->update(['name' => $attributes['profile_name']]);
+
+        return redirect(route('account.show').'#editar-nombre')
+            ->with('profile_name_status', 'Nombre guardado.');
+    }
+
+    public function updateEasterEggs(Request $request): RedirectResponse
+    {
+        $request->validate(['easter_eggs' => ['required', 'boolean']]);
+
+        $user = $request->user();
+        $user->easter_eggs = $request->boolean('easter_eggs');
+        $user->save();
+
+        return redirect(route('account.show').'#easter-eggs');
+    }
+
     private function normalizeEmail(Request $request): void
     {
         $email = $request->input('email');

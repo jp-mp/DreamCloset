@@ -109,9 +109,9 @@ function paintOutfit(canvas, cutouts) {
         return;
     }
 
-    const accessory = cutouts.find(({ garment }) => garment.category === 'accessory');
-    const garments = cutouts.filter((cutout) => cutout !== accessory);
-    const garmentHeightScale = accessory ? 900 / height : 1;
+    const accessories = cutouts.filter(({ garment }) => garment.category === 'accessory');
+    const garments = cutouts.filter(({ garment }) => garment.category !== 'accessory');
+    const garmentHeightScale = accessories.length ? 900 / height : 1;
     const columns = garments.length <= 2
         ? garments.map((cutout) => [cutout])
         : [
@@ -141,9 +141,15 @@ function paintOutfit(canvas, cutouts) {
         });
     });
 
-    if (accessory) {
-        drawCutout(brush, accessory, { x: (width - 290) / 2, y: 890, width: 290, height: 190 });
-    }
+    const accessoryWidth = Math.min(290, width / Math.max(accessories.length, 1));
+    accessories.forEach((accessory, index) => {
+        drawCutout(brush, accessory, {
+            x: (width - accessories.length * accessoryWidth) / 2 + index * accessoryWidth,
+            y: garments.length ? 890 : 320,
+            width: accessoryWidth,
+            height: garments.length ? 190 : 485,
+        });
+    });
 }
 
 export function mountOutfitImage(root, day, cutoutCache) {

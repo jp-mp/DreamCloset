@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ClothingItemController;
+use App\Http\Controllers\DailyDrinkController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -17,9 +18,12 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::get('/account', [AuthController::class, 'account'])->name('account.show');
+    Route::patch('/account/name', [AuthController::class, 'updateName'])->name('account.name');
+    Route::patch('/account/easter-eggs', [AuthController::class, 'updateEasterEggs'])->name('account.easter-eggs');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
-    Route::view('/inicio', 'home')->name('home');
+    Route::get('/inicio', [DailyDrinkController::class, 'showHome'])->name('home');
+    Route::post('/inicio/otro-trago', [DailyDrinkController::class, 'another'])->name('daily-drink.another');
     Route::view('/mi-semana', 'week.index')->name('week.index');
     Route::view('/mi-closet', 'closet.index')->name('closet.index');
     Route::view('/mi-closet/agregar', 'closet.create')->name('closet.create');

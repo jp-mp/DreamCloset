@@ -36,6 +36,7 @@ class User extends Authenticatable
             'password' => 'hashed',
             'latitude' => 'float',
             'longitude' => 'float',
+            'easter_eggs' => 'boolean',
         ];
     }
 }
