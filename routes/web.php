@@ -17,4 +17,8 @@ Route::middleware('guest')->group(function () {
 Route::middleware('auth')->group(function () {
     Route::get('/account', [AuthController::class, 'account'])->name('account.show');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+    Route::view('/inicio', 'home')->name('home');
+    Route::view('/mi-semana', 'week.index')->name('week.index');
+    Route::view('/mi-closet', 'closet.index')->name('closet.index');
 });

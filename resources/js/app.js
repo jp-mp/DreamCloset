@@ -1,1 +1,29 @@
-//
+import { mountCloset } from './closet.js';
+import { mountWeather } from './weather.js';
+
+const weather = document.querySelector('[data-weather]');
+if (weather) {
+    mountWeather(weather);
+}
+
+const closet = document.querySelector('[data-closet]');
+if (closet) {
+    mountCloset(closet);
+}
+
+const mobileMenu = document.querySelector('[data-mobile-menu]');
+
+if (mobileMenu) {
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && mobileMenu.open) {
+            mobileMenu.open = false;
+            mobileMenu.querySelector('summary').focus();
+        }
+    });
+
+    document.addEventListener('click', (event) => {
+        if (mobileMenu.open && !mobileMenu.contains(event.target)) {
+            mobileMenu.open = false;
+        }
+    });
+}

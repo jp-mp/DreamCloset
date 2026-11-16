@@ -1,17 +1,21 @@
 @extends('layouts.account')
+
 @section('title', 'Crear una cuenta')
+@section('description', 'Crea tu cuenta para organizar las prendas que ya tienes.')
+
 @section('content')
-    <form method="POST" action="{{ route('register.store') }}">
+    <form method="POST" action="{{ route('register.store') }}" class="grid gap-4">
         @csrf
-        <label for="name">Nombre</label>
-        <input id="name" name="name" value="{{ old('name') }}" maxlength="100" autocomplete="name" required autofocus>
-        <label for="email">Correo electrónico</label>
-        <input id="email" name="email" type="email" value="{{ old('email') }}" maxlength="255" autocomplete="username" required>
-        <label for="password">Contraseña (mínimo 8 caracteres)</label>
-        <input id="password" name="password" type="password" minlength="8" autocomplete="new-password" required>
-        <label for="password_confirmation">Confirmar contraseña</label>
-        <input id="password_confirmation" name="password_confirmation" type="password" minlength="8" autocomplete="new-password" required>
-        <button type="submit">Crear cuenta</button>
+
+        <x-form-field name="name" label="Nombre" :value="old('name')" maxlength="100" autocomplete="name" required :autofocus="true" />
+        <x-form-field name="email" label="Correo electrónico" type="email" :value="old('email')" maxlength="255" autocomplete="username" required />
+        <x-form-field name="password" label="Contraseña" type="password" hint="Mínimo 8 caracteres." minlength="8" autocomplete="new-password" required />
+        <x-form-field name="password_confirmation" label="Confirmar contraseña" type="password" minlength="8" autocomplete="new-password" required />
+
+        <button type="submit" class="dc-action-primary mt-1">Crear cuenta</button>
     </form>
-    <p>¿Ya tienes cuenta? <a href="{{ route('login') }}">Iniciar sesión</a></p>
+
+    <p class="mt-6 border-t border-line pt-5 text-center text-sm text-muted">
+        ¿Ya tienes cuenta? <a href="{{ route('login') }}" class="rounded-sm font-bold text-ink underline underline-offset-4">Iniciar sesión</a>
+    </p>
 @endsection
