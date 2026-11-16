@@ -10,12 +10,6 @@
             <p class="text-muted">Consulta el clima antes de elegir qué ponerte.</p>
         </header>
 
-        <x-outfit-recommendations period="today" />
-
-        @if ($drink)
-            <x-daily-drink :drink="$drink" />
-        @endif
-
         <x-panel aria-labelledby="clima-actual" tone="ink">
             <div class="grid gap-4">
                 <p class="wrap-anywhere text-xs font-bold tracking-widest text-white/75 uppercase">
@@ -39,6 +33,12 @@
                 </div>
             </div>
         </x-panel>
+
+        <x-outfit-recommendations period="today" />
+
+        @if ($drink)
+            <x-daily-drink :drink="$drink" />
+        @endif
 
         <section aria-labelledby="proximos-dias" class="grid gap-4">
             <div class="flex flex-wrap items-center justify-between gap-3">

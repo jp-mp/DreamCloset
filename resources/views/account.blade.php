@@ -73,6 +73,37 @@
                 @csrf
                 @method('PUT')
 
+                <div data-location-map data-map-assets="{{ asset('images/maps') }}" class="grid gap-3" hidden>
+                    <div class="dc-location-stage">
+                        <canvas width="704" height="432" aria-hidden="true" data-map-canvas></canvas>
+                        <div class="dc-location-stage-top">
+                            <button type="button" data-map-back hidden>Volver</button>
+                            <span data-map-context>Mundo</span>
+                        </div>
+                        <div class="dc-location-stage-controls" data-map-rotate>
+                            <button type="button" data-map-turn="-1" aria-label="Girar el globo hacia la izquierda">←</button>
+                            <button type="button" data-map-turn="1" aria-label="Girar el globo hacia la derecha">→</button>
+                        </div>
+                        <span class="dc-location-map-tooltip" data-map-tooltip hidden></span>
+                        <div class="dc-location-stage-credit">
+                            <a href="https://www.naturalearthdata.com/about/terms-of-use/" target="_blank" rel="noopener">Natural Earth</a>
+                            <span aria-hidden="true"> · </span>
+                            <a href="https://www.geoboundaries.org/api.html" target="_blank" rel="noopener">geoBoundaries</a>
+                            <a href="https://data.humdata.org/dataset/chile-administrative-level-0-country-1-region-region" target="_blank" rel="noopener" title="Límites de Chile simplificados · CC BY 3.0 IGO" data-map-chile-credit hidden>BCN / OCHA</a>
+                        </div>
+                    </div>
+                    <label for="location-area" class="text-sm font-bold" data-map-label>Selecciona un país</label>
+                    <select id="location-area" data-map-select class="min-h-11 w-full rounded-xl border border-line bg-white px-3 text-sm text-ink" disabled>
+                        <option value="">Cargando países…</option>
+                    </select>
+                    <p data-map-status role="status" class="text-sm text-muted"></p>
+                    <button type="button" data-map-retry class="dc-action-secondary justify-self-start" hidden>Reintentar</button>
+                </div>
+
+                <div class="border-t border-line pt-4">
+                    <h3 class="text-sm font-bold">Coordenadas</h3>
+                    <p class="mt-1 text-sm text-muted">Puedes ingresarlas manualmente o usar tu ubicación actual.</p>
+                </div>
                 <div>
                     <button type="button" data-geolocate class="dc-action-secondary disabled:opacity-60">Usar mi ubicación</button>
                     <p data-geolocation-status role="status" class="mt-2 text-sm text-muted"></p>
