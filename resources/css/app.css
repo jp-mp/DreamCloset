@@ -54,3 +54,94 @@
     background-image: repeating-conic-gradient(#e5ded3 0% 25%, transparent 0% 50%);
     background-size: 18px 18px;
 }
+
+.dc-location-stage {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    border-radius: var(--radius-card);
+    background: radial-gradient(ellipse at center, #304d58, #172a33 72%);
+    color: #edf2ed;
+}
+
+.dc-location-stage canvas {
+    display: block;
+    width: 100%;
+    cursor: pointer;
+}
+
+.dc-location-stage canvas[data-globe] {
+    cursor: grab;
+    touch-action: none;
+}
+
+.dc-location-stage canvas[data-globe]:active {
+    cursor: grabbing;
+}
+
+.dc-location-stage-top,
+.dc-location-stage-controls,
+.dc-location-stage-credit {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+.dc-location-stage-top {
+    top: 0.65rem;
+    inset-inline: 0.65rem;
+    flex-wrap: wrap;
+    pointer-events: none;
+}
+
+.dc-location-stage-controls {
+    bottom: 0.65rem;
+    left: 0.65rem;
+}
+
+.dc-location-stage button,
+.dc-location-stage-top span,
+.dc-location-map-tooltip {
+    border-radius: 0.6rem;
+    background: #172a33ed;
+    color: #edf2ed;
+    padding: 0.35rem 0.6rem;
+    font-size: 0.75rem;
+    font-weight: 650;
+}
+
+.dc-location-stage button {
+    min-height: 2.25rem;
+    min-width: 2.25rem;
+    border: 1px solid #647d81;
+    cursor: pointer;
+    pointer-events: auto;
+}
+
+.dc-location-stage button:hover,
+.dreamcloset-shell .dc-location-stage button:focus-visible {
+    border-color: #ecc1ab;
+    outline-color: #ecc1ab;
+}
+
+.dc-location-stage-credit {
+    right: 0.65rem;
+    bottom: 0.65rem;
+    color: #d0dfdc;
+    font-size: 0.625rem;
+}
+
+.dc-location-stage-credit a {
+    text-decoration: underline;
+}
+
+.dc-location-map-tooltip {
+    position: absolute;
+    bottom: 2.6rem;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 12rem;
+    pointer-events: none;
+    text-align: center;
+}

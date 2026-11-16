@@ -95,8 +95,13 @@ export function mountLocationForm(form) {
 
     saveForm(form, ({ data }) => {
         savedLocation.textContent = data.name ?? 'Mi ubicación';
+        form.dispatchEvent(new CustomEvent('location:saved', { detail: data }));
         return 'Ubicación guardada.';
     });
+
+    import('./location-map.js')
+        .then(({ mountLocationMap }) => mountLocationMap(form))
+        .catch((error) => console.error('No se pudo iniciar el mapa de ubicación.', error));
 
     if (!navigator.geolocation) {
         geolocate.hidden = true;
@@ -114,6 +119,7 @@ export function mountLocationForm(form) {
             if (latitude.value === previousLatitude && longitude.value === previousLongitude) {
                 latitude.value = coords.latitude.toFixed(4);
                 longitude.value = coords.longitude.toFixed(4);
+                latitude.dispatchEvent(new Event('input', { bubbles: true }));
                 status.textContent = 'Coordenadas listas. Pulsa Guardar ubicación para aplicarlas.';
             } else {
                 status.textContent = 'Conservamos las coordenadas que ingresaste.';
