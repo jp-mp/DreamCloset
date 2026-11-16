@@ -7,6 +7,44 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+## Probar DreamCloset con fotos y recomendaciones
+
+Desde la raíz del repositorio, aplica la migración de fotos y arranca Laravel. Deja Vite abierto en una segunda terminal con `npm run dev` y abre la dirección que imprime Artisan.
+
+```bash
+php artisan migrate
+php artisan serve
+```
+
+- En **Mi clóset → Agregar prenda**, carga una foto JPG, PNG o WebP. **Quitar fondo** prepara un recorte que puedes revisar antes de guardar. Usa **Editar** para recortar, reemplazar o quitar la foto de una prenda existente, y **Eliminar** para borrar la prenda con su foto. Las fotos se almacenan en el disco privado de Laravel y solo se sirven al dueño de la prenda. Para archivos de más de 2 MB, revisa el `php.ini` indicado por `php --ini` y configura `upload_max_filesize = 5M` y `post_max_size = 8M` si tu servidor tiene los límites predeterminados.
+- Guarda tu ubicación en **Mi cuenta**. **Inicio** muestra automáticamente un outfit con tus prendas y el pronóstico de Open-Meteo. Puedes pedir un estilo casual, formal o deportivo. Usa **Estilo** en las tarjetas de **Mi clóset** para etiquetar prendas que ya guardaste. Las solicitudes manuales usan Groq cuando está disponible y recurren a reglas de clima y estilo cuando no responde.
+- Con al menos dos prendas y todas las fotos del outfit recortadas, **Inicio** crea una composición descargable en PNG. El fondo es de lino y cada prenda ocupa su lugar según su categoría. Si falta algún recorte, puedes abrir la prenda desde la recomendación para preparar su foto. En **Mi semana**, usa **Crear imagen del outfit** para el día que elijas. El navegador arma la imagen con los recortes guardados.
+
+### Activar el recorte local
+
+Instala rembg en un entorno virtual de Python 3.11–3.13. En Ubuntu, inicia el servicio en una terminal aparte con un límite de memoria. La primera solicitud descarga el modelo.
+
+```bash
+python3 -m venv storage/app/rembg-venv
+storage/app/rembg-venv/bin/pip install 'rembg[cpu,cli]==2.0.87'
+systemd-run --user --scope -p MemoryMax=1G -p MemorySwapMax=128M \
+  env BROWSER=/bin/true OMP_NUM_THREADS=2 "$PWD/storage/app/rembg-venv/bin/rembg" \
+  s --host 127.0.0.1 --port 7000 --no-ui --threads 2 --max-sessions 1
+```
+
+El recorte usa `u2netp` por defecto para reducir el consumo de memoria. En un servidor con más memoria puedes elegir BiRefNet con `REMBG_MODEL=birefnet-general-lite`. Si rembg corre en otro equipo, configura `REMBG_URL` con la dirección accesible desde Laravel. Si el recorte falla, puedes guardar la foto original. [Documentación de rembg](https://github.com/danielgatis/rembg#usage-as-a-server)
+
+### Activar Groq
+
+Añade tu clave al archivo `.env` de Laravel, ejecuta `php artisan config:clear` y reinicia el servidor.
+
+```dotenv
+GROQ_API_KEY=
+GROQ_MODEL=openai/gpt-oss-20b
+```
+
+Groq recibe la previsión resumida, el estilo elegido y los datos descriptivos de las prendas candidatas. Laravel valida los identificadores devueltos contra el clóset propio antes de mostrar el resultado. [Salidas estructuradas de Groq](https://console.groq.com/docs/structured-outputs)
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

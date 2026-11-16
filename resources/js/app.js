@@ -1,5 +1,6 @@
 import { mountCloset } from './closet.js';
 import { mountGarmentForm, mountLocationForm } from './edit-forms.js';
+import { mountRecommendations } from './outfit-recommendations.js';
 import { mountWeather } from './weather.js';
 
 const locationForm = document.querySelector('[data-location-form]');
@@ -13,13 +14,16 @@ if (garmentForm) {
 }
 
 const weather = document.querySelector('[data-weather]');
-if (weather) {
-    mountWeather(weather);
-}
+const weatherReady = weather ? mountWeather(weather) : Promise.resolve();
 
 const closet = document.querySelector('[data-closet]');
 if (closet) {
     mountCloset(closet);
+}
+
+const recommendations = document.querySelector('[data-outfits]');
+if (recommendations) {
+    mountRecommendations(recommendations, weatherReady);
 }
 
 const mobileMenu = document.querySelector('[data-mobile-menu]');

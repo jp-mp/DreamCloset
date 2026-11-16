@@ -104,6 +104,7 @@ function fillChart(chart, template, days) {
         return fragment;
     }));
     chart.hidden = false;
+    chart.closest('[data-week-chart-panel]').hidden = false;
 }
 
 export function mountWeather(root) {
@@ -148,5 +149,5 @@ export function mountWeather(root) {
     }
 
     status.retry.addEventListener('click', () => load({ fromRetry: true }));
-    load();
+    return load();
 }

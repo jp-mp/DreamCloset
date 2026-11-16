@@ -22,6 +22,9 @@ class ClothingItemResource extends JsonResource
             'season' => $this->season,
             'warmth' => $this->warmth,
             'waterproof' => $this->waterproof,
+            'style' => $this->style,
+            'edit_url' => route('closet.edit', $this->resource, absolute: false),
+            'photo_url' => $this->photo_path ? route('clothing.photo', $this->resource, absolute: false) : null,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

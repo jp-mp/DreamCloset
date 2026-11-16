@@ -14,6 +14,16 @@ return [
     |
     */
 
+    'rembg' => [
+        'url' => env('REMBG_URL', 'http://127.0.0.1:7000'),
+        'model' => env('REMBG_MODEL', 'u2netp'),
+    ],
+
+    'groq' => [
+        'key' => env('GROQ_API_KEY'),
+        'model' => env('GROQ_MODEL', 'openai/gpt-oss-20b'),
+    ],
+
     'postmark' => [
         'key' => env('POSTMARK_API_KEY'),
     ],

@@ -12,6 +12,12 @@ export function mountCloset(root) {
     const template = root.querySelector('[data-closet-item]');
     const pagination = root.querySelector('[data-closet-pagination]');
     const currentUrl = new URL(window.location.href);
+    const dialog = root.querySelector('[data-delete-dialog]');
+    const deleteName = dialog.querySelector('[data-delete-name]');
+    const deleteStatus = dialog.querySelector('[data-delete-status]');
+    const deleteConfirm = dialog.querySelector('[data-delete-confirm]');
+    const deleteCancel = dialog.querySelector('[data-delete-cancel]');
+    let selectedItem;
 
     function pageUrl(page) {
         const url = new URL(currentUrl.pathname, currentUrl.origin);
@@ -28,6 +34,89 @@ export function mountCloset(root) {
         const link = pagination.querySelector(selector);
         link.hidden = !available;
         link.href = pageUrl(page);
+    }
+
+    dialog.addEventListener('cancel', (event) => {
+        if (deleteConfirm.disabled) {
+            event.preventDefault();
+        }
+    });
+
+    deleteConfirm.addEventListener('click', async () => {
+        deleteConfirm.disabled = true;
+        deleteCancel.disabled = true;
+        deleteStatus.textContent = 'Eliminando prenda…';
+
+        try {
+            const response = await fetch(root.dataset.deleteUrl.replace('__item__', selectedItem.id), {
+                method: 'DELETE',
+                headers: { Accept: 'application/json', 'X-CSRF-TOKEN': root.dataset.csrf },
+            });
+
+            if (response.status === 401 || response.status === 419) {
+                deleteStatus.textContent = 'Tu sesión venció. Vuelve a iniciar sesión para eliminar la prenda.';
+                return;
+            }
+            if (!response.ok && response.status !== 404) {
+                throw new Error('No pudimos eliminar la prenda.');
+            }
+
+            dialog.close();
+            await load({ fromRetry: true });
+        } catch {
+            deleteStatus.textContent = 'No pudimos confirmar la eliminación. Inténtalo de nuevo.';
+        } finally {
+            deleteConfirm.disabled = false;
+            deleteCancel.disabled = false;
+        }
+    });
+
+    function mountActions(fragment, item) {
+        const edit = fragment.querySelector('[data-item-edit]');
+        edit.href = item.edit_url;
+        edit.setAttribute('aria-label', 'Editar ' + item.name);
+
+        const remove = fragment.querySelector('[data-item-delete]');
+        remove.setAttribute('aria-label', 'Eliminar ' + item.name);
+        remove.addEventListener('click', () => {
+            selectedItem = item;
+            deleteName.textContent = item.name;
+            deleteStatus.textContent = '';
+            dialog.showModal();
+        });
+    }
+
+    function mountStyle(fragment, item) {
+        const select = fragment.querySelector('[data-item-style]');
+        const status = fragment.querySelector('[data-style-status]');
+        const url = root.dataset.styleUrl.replace('__item__', item.id);
+        select.value = item.style ?? '';
+        select.setAttribute('aria-label', 'Estilo de ' + item.name);
+
+        select.addEventListener('change', async () => {
+            select.disabled = true;
+            status.textContent = 'Guardando estilo…';
+            try {
+                const response = await fetch(url, {
+                    method: 'PATCH',
+                    headers: { Accept: 'application/json', 'Content-Type': 'application/json', 'X-CSRF-TOKEN': root.dataset.csrf },
+                    body: JSON.stringify({ style: select.value || null }),
+                });
+
+                if (!response.ok) {
+                    throw new Error('No pudimos guardar el estilo.');
+                }
+
+                const { data } = await response.json();
+                item.style = data.style;
+                status.textContent = 'Estilo guardado.';
+            } catch {
+                select.value = item.style ?? '';
+                status.textContent = 'No pudimos guardar el estilo. Inténtalo de nuevo.';
+            } finally {
+                select.disabled = false;
+            }
+        });
     }
 
     async function load({ fromRetry = false } = {}) {
@@ -49,6 +138,19 @@ export function mountCloset(root) {
                 const color = fragment.querySelector('[data-item-color]');
                 color.textContent = item.color ?? '';
                 color.hidden = !item.color;
+                if (item.photo_url) {
+                    const photo = fragment.querySelector('[data-item-photo]');
+                    const placeholder = fragment.querySelector('[data-item-placeholder]');
+                    photo.addEventListener('error', () => {
+                        photo.hidden = true;
+                        placeholder.hidden = false;
+                    });
+                    photo.hidden = false;
+                    placeholder.hidden = true;
+                    photo.src = item.photo_url;
+                }
+                mountStyle(fragment, item);
+                mountActions(fragment, item);
                 return fragment;
             }));
             list.hidden = data.length === 0;

@@ -13,6 +13,7 @@ test('returns 401 to guests for every private closet action', function (string $
     ['POST', '/api/v1/me/clothing'],
     ['GET', '/api/v1/me/clothing/1'],
     ['PUT', '/api/v1/me/clothing/1'],
+    ['PATCH', '/api/v1/me/clothing/1/style'],
     ['DELETE', '/api/v1/me/clothing/1'],
 ]);
 
@@ -127,4 +128,35 @@ test('private clothing writes require csrf protection', function () {
     ])->assertStatus(419);
 
     $this->assertDatabaseCount('clothing_items', 0);
+});
+
+test('a member can label existing garments by style without altering the rest of the item', function () {
+    $item = ClothingItem::factory()->create(['name' => 'Camisa', 'category' => 'top', 'style' => null]);
+    $url = route('clothing.style', $item);
+
+    $this->actingAs($item->user)->patchJson($url, ['style' => 'formal', 'name' => 'Ignorar'])
+        ->assertOk()->assertJsonPath('data.style', 'formal')->assertJsonPath('data.name', 'Camisa');
+
+    $this->patchJson($url, ['style' => 'inventado'])
+        ->assertUnprocessable()->assertJsonValidationErrors('style');
+
+    $this->actingAs(User::factory()->create())->patchJson($url, ['style' => 'casual'])->assertNotFound();
+    $this->assertDatabaseHas('clothing_items', ['id' => $item->id, 'style' => 'formal', 'name' => 'Camisa']);
+
+    $this->actingAs($item->user)->patchJson($url, ['style' => null])
+        ->assertOk()->assertJsonPath('data.style', null);
+    $this->assertDatabaseHas('clothing_items', ['id' => $item->id, 'style' => null]);
+});
+
+test('only the owner can open the prefilled garment editor', function () {
+    $item = ClothingItem::factory()->create(['name' => 'Chaqueta del clóset', 'waterproof' => true]);
+    $url = route('closet.edit', $item);
+    $this->withoutVite();
+
+    $this->get($url)->assertRedirectToRoute('login');
+    $this->actingAs(User::factory()->create())->get($url)->assertNotFound();
+    $this->actingAs($item->user)->get($url)
+        ->assertOk()->assertViewHas('item', fn (ClothingItem $saved): bool => $saved->is($item))
+        ->assertSeeText('Editar prenda')->assertSee('value="Chaqueta del clóset"', false)
+        ->assertSee('name="waterproof" value="1" checked', false);
 });
