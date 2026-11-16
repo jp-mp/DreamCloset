@@ -11,7 +11,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 #[Fillable(['name', 'category', 'color', 'season', 'warmth', 'waterproof', 'photo_path', 'style'])]
 class ClothingItem extends Model
 {
-    public const CATEGORIES = ['top', 'bottom', 'outerwear', 'footwear'];
+    public const CATEGORIES = [
+        'top' => 'Parte superior',
+        'bottom' => 'Parte inferior',
+        'outerwear' => 'Abrigo',
+        'footwear' => 'Calzado',
+        'accessory' => 'Accesorios',
+    ];
 
     public const SEASONS = ['all', 'spring', 'summer', 'autumn', 'winter'];
 

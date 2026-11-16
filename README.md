@@ -18,19 +18,22 @@ php artisan serve
 
 - En **Mi clóset → Agregar prenda**, carga una foto JPG, PNG o WebP. **Quitar fondo** prepara un recorte que puedes revisar antes de guardar. Usa **Editar** para recortar, reemplazar o quitar la foto de una prenda existente, y **Eliminar** para borrar la prenda con su foto. Las fotos se almacenan en el disco privado de Laravel y solo se sirven al dueño de la prenda. Para archivos de más de 2 MB, revisa el `php.ini` indicado por `php --ini` y configura `upload_max_filesize = 5M` y `post_max_size = 8M` si tu servidor tiene los límites predeterminados.
 - Guarda tu ubicación en **Mi cuenta**. **Inicio** muestra automáticamente un outfit con tus prendas y el pronóstico de Open-Meteo. Puedes pedir un estilo casual, formal o deportivo. Usa **Estilo** en las tarjetas de **Mi clóset** para etiquetar prendas que ya guardaste. Las solicitudes manuales usan Groq cuando está disponible y recurren a reglas de clima y estilo cuando no responde.
-- Con al menos dos prendas y todas las fotos del outfit recortadas, **Inicio** crea una composición descargable en PNG. El fondo es de lino y cada prenda ocupa su lugar según su categoría. Si falta algún recorte, puedes abrir la prenda desde la recomendación para preparar su foto. En **Mi semana**, usa **Crear imagen del outfit** para el día que elijas. El navegador arma la imagen con los recortes guardados.
+- **Inicio** y **Mi semana** muestran el outfit como una imagen descargable en PNG. Cada recorte ocupa su lugar según la categoría sobre un fondo neutro que se elige a partir de los colores de las fotos. Si faltan recortes, la imagen muestra los que ya están listos y **Fotos por preparar** enlaza a las prendas pendientes.
 
 ### Activar el recorte local
 
-Instala rembg en un entorno virtual de Python 3.11–3.13. En Ubuntu, inicia el servicio en una terminal aparte con un límite de memoria. La primera solicitud descarga el modelo.
+Instala rembg en un entorno virtual de Python 3.11–3.13. En Ubuntu, inicia el servicio de usuario con un límite de memoria. La primera solicitud descarga el modelo.
 
 ```bash
 python3 -m venv storage/app/rembg-venv
 storage/app/rembg-venv/bin/pip install 'rembg[cpu,cli]==2.0.87'
-systemd-run --user --scope -p MemoryMax=1G -p MemorySwapMax=128M \
-  env BROWSER=/bin/true OMP_NUM_THREADS=2 "$PWD/storage/app/rembg-venv/bin/rembg" \
+systemd-run --user --unit=dreamcloset-rembg -p MemoryMax=1G -p MemorySwapMax=128M \
+  env BROWSER=/bin/true OMP_NUM_THREADS=2 U2NET_HOME="$PWD/storage/app/rembg-models" \
+  "$PWD/storage/app/rembg-venv/bin/rembg" \
   s --host 127.0.0.1 --port 7000 --no-ui --threads 2 --max-sessions 1
 ```
+
+Comprueba si el proceso está activo con `systemctl --user status dreamcloset-rembg`. Si reinicias la sesión de usuario y el servicio se detiene, vuelve a ejecutar el comando `systemd-run`.
 
 El recorte usa `u2netp` por defecto para reducir el consumo de memoria. En un servidor con más memoria puedes elegir BiRefNet con `REMBG_MODEL=birefnet-general-lite`. Si rembg corre en otro equipo, configura `REMBG_URL` con la dirección accesible desde Laravel. Si el recorte falla, puedes guardar la foto original. [Documentación de rembg](https://github.com/danielgatis/rembg#usage-as-a-server)
 

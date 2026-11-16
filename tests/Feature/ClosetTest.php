@@ -160,3 +160,20 @@ test('only the owner can open the prefilled garment editor', function () {
         ->assertSeeText('Editar prenda')->assertSee('value="Chaqueta del clóset"', false)
         ->assertSee('name="waterproof" value="1" checked', false);
 });
+
+test('members can add accessories and find them under the accessories filter', function () {
+    $member = User::factory()->create();
+    ClothingItem::factory()->for($member)->create(['category' => 'top']);
+    ClothingItem::factory()->create(['category' => 'accessory']);
+    $this->withoutVite()->actingAs($member);
+
+    $this->get(route('closet.create'))->assertOk()->assertSeeText('Accesorios');
+    $this->get(route('closet.index', ['category' => 'accessory']))->assertOk()->assertSeeText('Accesorios');
+
+    $response = $this->postJson(route('clothing.store'), [
+        'name' => 'Reloj', 'category' => 'accessory', 'warmth' => 'light',
+    ])->assertCreated()->assertJsonPath('data.category', 'accessory');
+
+    $this->getJson(route('clothing.index', ['category' => 'accessory']))
+        ->assertOk()->assertJsonCount(1, 'data')->assertJsonPath('data.0.id', $response->json('data.id'));
+});

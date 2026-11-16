@@ -117,7 +117,7 @@ class OutfitRecommendations
 
         $onlyOuterwear = $items->every(fn (ClothingItem $item): bool => $item->category === 'outerwear');
 
-        foreach (ClothingItem::CATEGORIES as $category) {
+        foreach (array_keys(ClothingItem::CATEGORIES) as $category) {
             $options = $items->where('category', $category);
 
             if ($options->isEmpty() || ($category === 'outerwear' && ! $needsLayer && ! $onlyOuterwear)) {

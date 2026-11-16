@@ -24,7 +24,7 @@ class ClothingItemController extends Controller
     public function index(Request $request): AnonymousResourceCollection
     {
         $filters = $request->validate([
-            'category' => ['sometimes', 'required', Rule::in(ClothingItem::CATEGORIES)],
+            'category' => ['sometimes', 'required', Rule::in(array_keys(ClothingItem::CATEGORIES))],
         ]);
 
         return ClothingItemResource::collection(

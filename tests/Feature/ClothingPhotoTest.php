@@ -96,8 +96,12 @@ test('returns 503 when rembg fails or sends an invalid png and keeps the origina
     Http::fake(['127.0.0.1:7000/api/remove' => $connectionFails ? Http::failedConnection() : Http::response('invalid')]);
     $this->actingAs(User::factory()->create());
 
+    $message = $connectionFails
+        ? 'El servicio de recorte no respondió. Comprueba que esté iniciado y vuelve a intentar.'
+        : 'No pudimos recortar la foto. Puedes conservar la original o volver a intentar.';
+
     $this->postJson(route('clothing.photo-preview'), ['photo' => UploadedFile::fake()->image('original.jpg')])
-        ->assertServiceUnavailable()->assertJsonPath('message', 'No pudimos recortar la foto. Puedes conservar la original o volver a intentar.');
+        ->assertServiceUnavailable()->assertJsonPath('message', $message);
     $this->postJson(route('clothing.store'), [
         'name' => 'Polera', 'category' => 'top', 'warmth' => 'light', 'photo' => UploadedFile::fake()->image('original.jpg'),
     ])->assertCreated();

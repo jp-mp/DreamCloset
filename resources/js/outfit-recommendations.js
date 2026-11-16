@@ -1,14 +1,9 @@
 import { mountOutfitImage } from './outfit-composition.js';
 
 const dateLabel = new Intl.DateTimeFormat('es-CL', { weekday: 'long', month: 'short', day: 'numeric', timeZone: 'UTC' });
-const categories = {
-    top: 'Parte superior',
-    bottom: 'Parte inferior',
-    footwear: 'Calzado',
-    outerwear: 'Abrigo',
-};
 
 export function mountRecommendations(root, weatherReady) {
+    const categories = JSON.parse(root.dataset.categoryLabels);
     const form = root.querySelector('[data-outfit-form]');
     const button = form.querySelector('[type=submit]');
     const style = form.elements.namedItem('style');
@@ -17,24 +12,16 @@ export function mountRecommendations(root, weatherReady) {
     const closet = root.querySelector('[data-outfit-closet]');
     const list = root.querySelector('[data-outfit-list]');
     const dayTemplate = root.querySelector('[data-outfit-day]');
-    const garmentTemplate = root.querySelector('[data-outfit-garment]');
-
-    function renderGarment(item) {
-        const fragment = garmentTemplate.content.cloneNode(true);
-        fragment.querySelector('[data-outfit-name]').textContent = item.name;
-        fragment.querySelector('[data-outfit-category]').textContent = categories[item.category];
-
-        if (item.photo_url) {
-            const photo = fragment.querySelector('[data-outfit-photo]');
-            photo.addEventListener('error', () => { photo.hidden = true; });
-            photo.hidden = false;
-            photo.src = item.photo_url;
+    const visibleOutfits = new IntersectionObserver((entries, observer) => {
+        for (const entry of entries) {
+            if (entry.isIntersecting) {
+                observer.unobserve(entry.target);
+                entry.target.dispatchEvent(new Event('compose-outfit'));
+            }
         }
+    }, { rootMargin: '160px' });
 
-        return fragment;
-    }
-
-    function renderDay(day) {
+    function renderDay(day, cutoutCache) {
         const fragment = dayTemplate.content.cloneNode(true);
         const date = fragment.querySelector('time');
         date.dateTime = day.date;
@@ -43,7 +30,11 @@ export function mountRecommendations(root, weatherReady) {
             ? day.min + '° a ' + day.max + ' °C'
             : 'Sensación térmica: ' + day.temperature + ' °C';
         fragment.querySelector('[data-outfit-weather]').textContent = temperature + (day.rain ? ' · Posible precipitación' : '');
-        fragment.querySelector('[data-outfit-garments]').append(...day.garments.map(renderGarment));
+        fragment.querySelector('[data-outfit-garments]').append(...day.garments.map((garment) => {
+            const item = document.createElement('li');
+            item.textContent = garment.name;
+            return item;
+        }));
         fragment.querySelector('[data-outfit-reason]').textContent = day.reason;
 
         if (day.missing.length) {
@@ -52,13 +43,20 @@ export function mountRecommendations(root, weatherReady) {
             missing.hidden = false;
         }
 
-        mountOutfitImage(fragment.querySelector('[data-outfit-composition]'), day, root.dataset.period === 'today');
+        const composition = fragment.querySelector('[data-outfit-composition]');
+        const composeImage = mountOutfitImage(composition, day, cutoutCache);
+        if (root.dataset.period === 'today') {
+            queueMicrotask(composeImage);
+        } else {
+            const article = composition.closest('article');
+            article.addEventListener('compose-outfit', composeImage, { once: true });
+            visibleOutfits.observe(article);
+        }
 
         return fragment;
     }
 
     async function generate({ automatic = false } = {}) {
-
         if (button.disabled) {
             return;
         }
@@ -90,7 +88,9 @@ export function mountRecommendations(root, weatherReady) {
                 return;
             }
 
-            list.replaceChildren(...data.outfits.map(renderDay));
+            visibleOutfits.disconnect();
+            const cutoutCache = new Map();
+            list.replaceChildren(...data.outfits.map((day) => renderDay(day, cutoutCache)));
             const requestedStyle = body.get('style');
             const matchesStyle = data.outfits.some((outfit) => outfit.garments.some((garment) => garment.style === requestedStyle));
             if (data.source === 'groq') {

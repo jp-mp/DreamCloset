@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\ClothingPhoto;
 use App\Models\ClothingItem;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Cache;
@@ -26,6 +27,8 @@ class ClothingPhotoController extends Controller
 
         try {
             $png = $photos->removeBackground($request->file('photo'));
+        } catch (ConnectionException) {
+            abort(503, 'El servicio de recorte no respondió. Comprueba que esté iniciado y vuelve a intentar.');
         } finally {
             $lock->release();
         }

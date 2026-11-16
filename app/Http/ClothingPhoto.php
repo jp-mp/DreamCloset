@@ -2,7 +2,6 @@
 
 namespace App\Http;
 
-use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Http;
 
@@ -28,16 +27,12 @@ class ClothingPhoto
             return null;
         }
 
-        try {
-            $response = Http::accept('image/png')
-                ->connectTimeout(2)
-                ->timeout(35)
-                ->withoutRedirecting()
-                ->attach('file', $photo->getContent(), 'garment.'.$photo->extension(), ['Content-Type' => $photo->getMimeType()])
-                ->post($url.'/api/remove', ['model' => config('services.rembg.model')]);
-        } catch (ConnectionException) {
-            return null;
-        }
+        $response = Http::accept('image/png')
+            ->connectTimeout(2)
+            ->timeout(35)
+            ->withoutRedirecting()
+            ->attach('file', $photo->getContent(), 'garment.'.$photo->extension(), ['Content-Type' => $photo->getMimeType()])
+            ->post($url.'/api/remove', ['model' => config('services.rembg.model')]);
 
         if (! $response->successful()) {
             return null;

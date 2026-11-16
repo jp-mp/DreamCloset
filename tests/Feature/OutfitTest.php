@@ -184,3 +184,19 @@ test('manual styles change the local selection while the weather still determine
 
     Http::assertSentCount(1);
 });
+
+test('an outfit can include an accessory as a complement to its essential garments', function () {
+    config(['services.groq.key' => null]);
+    Http::preventStrayRequests();
+    Http::fake(['api.open-meteo.com/v1/forecast*' => Http::response(outfitForecast())]);
+    $member = outfitMember();
+    foreach (['top', 'bottom', 'footwear'] as $category) {
+        ClothingItem::factory()->for($member)->create(['category' => $category]);
+    }
+    $accessory = ClothingItem::factory()->for($member)->create(['category' => 'accessory', 'name' => 'Reloj']);
+
+    $this->actingAs($member)->postJson(route('outfits.generate'), ['period' => 'today', 'automatic' => true])
+        ->assertOk()->assertJsonCount(4, 'outfits.0.garments')
+        ->assertJsonPath('outfits.0.garments.3.id', $accessory->id)
+        ->assertJsonPath('outfits.0.missing', []);
+});

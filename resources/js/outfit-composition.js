@@ -18,12 +18,17 @@ async function loadCutout(garment) {
 
     let transparent = 0;
     let visible = 0;
+    let colorPixels = 0;
+    let red = 0;
+    let green = 0;
+    let blue = 0;
     const rows = new Uint16Array(sample.height);
     const columns = new Uint16Array(sample.width);
 
     for (let y = 0; y < sample.height; y++) {
         for (let x = 0; x < sample.width; x++) {
-            const alpha = data[(y * sample.width + x) * 4 + 3];
+            const pixel = (y * sample.width + x) * 4;
+            const alpha = data[pixel + 3];
             if (alpha <= 16) {
                 transparent++;
             }
@@ -31,6 +36,12 @@ async function loadCutout(garment) {
                 visible++;
                 rows[y]++;
                 columns[x]++;
+            }
+            if (alpha >= 192) {
+                red += data[pixel];
+                green += data[pixel + 1];
+                blue += data[pixel + 2];
+                colorPixels++;
             }
         }
     }
@@ -47,88 +58,106 @@ async function loadCutout(garment) {
     const top = Math.max(0, rows.findIndex((count) => count >= rowThreshold) - 2);
     const bottom = Math.min(sample.height - 1, rows.findLastIndex((count) => count >= rowThreshold) + 2);
 
-    return { garment, sample, left, top, width: right - left + 1, height: bottom - top + 1 };
+    const color = colorPixels ? [red / colorPixels, green / colorPixels, blue / colorPixels] : null;
+
+    return { garment, sample, left, top, width: right - left + 1, height: bottom - top + 1, color };
 }
 
-function paintBackdrop(brush) {
-    const tile = document.createElement('canvas');
-    tile.width = 64;
-    tile.height = 64;
-    const texture = tile.getContext('2d');
-    texture.fillStyle = '#e7dac8';
-    texture.fillRect(0, 0, tile.width, tile.height);
+function backdropColor(cutouts) {
+    const colors = cutouts.map(({ color }) => color).filter(Boolean);
+    const temperature = colors.reduce((sum, [red, , blue]) => sum + red - blue, 0) / Math.max(colors.length, 1);
+    const hasLightGarment = colors.some(([red, green, blue]) => 0.21 * red + 0.72 * green + 0.07 * blue > 200);
 
-    for (let line = 0; line < tile.width; line += 2) {
-        texture.fillStyle = line % 8 === 0 ? '#87725612' : '#ffffff35';
-        texture.fillRect(line, 0, 1, tile.height);
-        texture.fillStyle = line % 6 === 0 ? '#87725615' : '#ffffff26';
-        texture.fillRect(0, line, tile.width, 1);
+    if (temperature > 10) {
+        return hasLightGarment ? '#c0ae98' : '#e7dac8';
+    }
+    if (temperature < -10) {
+        return hasLightGarment ? '#aebac0' : '#dce2e4';
     }
 
-    brush.fillStyle = brush.createPattern(tile, 'repeat');
-    brush.fillRect(0, 0, width, height);
+    return hasLightGarment ? '#b7b2a9' : '#e2ded5';
+}
 
-    const light = brush.createRadialGradient(300, 230, 30, 460, 500, 760);
-    light.addColorStop(0, '#ffffff38');
-    light.addColorStop(1, '#795d3f20');
-    brush.fillStyle = light;
-    brush.fillRect(0, 0, width, height);
+function drawCutout(brush, cutout, slot) {
+    const scale = Math.min(slot.width / cutout.width, slot.height / cutout.height);
+    const drawnWidth = cutout.width * scale;
+    const drawnHeight = cutout.height * scale;
+
+    brush.drawImage(
+        cutout.sample, cutout.left, cutout.top, cutout.width, cutout.height,
+        slot.x + (slot.width - drawnWidth) / 2, slot.y + (slot.height - drawnHeight) / 2,
+        drawnWidth, drawnHeight,
+    );
 }
 
 function paintOutfit(canvas, cutouts) {
     canvas.width = width;
     canvas.height = height;
     const brush = canvas.getContext('2d');
-    paintBackdrop(brush);
+    brush.fillStyle = backdropColor(cutouts);
+    brush.fillRect(0, 0, width, height);
     brush.imageSmoothingQuality = 'high';
     brush.shadowColor = '#39291e40';
     brush.shadowBlur = 16;
     brush.shadowOffsetY = 9;
 
-    const columns = cutouts.length === 2
-        ? cutouts.map((cutout) => [cutout])
+    if (cutouts.length === 1) {
+        const slot = cutouts[0].garment.category === 'accessory'
+            ? { x: 245, y: 320, width: 410, height: 485 }
+            : { x: 125, y: 125, width: 650, height: 875 };
+        drawCutout(brush, cutouts[0], slot);
+        return;
+    }
+
+    const accessory = cutouts.find(({ garment }) => garment.category === 'accessory');
+    const garments = cutouts.filter((cutout) => cutout !== accessory);
+    const garmentHeightScale = accessory ? 900 / height : 1;
+    const columns = garments.length <= 2
+        ? garments.map((cutout) => [cutout])
         : [
-            cutouts.filter(({ garment }) => ['top', 'bottom'].includes(garment.category)),
-            cutouts.filter(({ garment }) => ['outerwear', 'footwear'].includes(garment.category)),
+            garments.filter(({ garment }) => ['top', 'bottom'].includes(garment.category)),
+            garments.filter(({ garment }) => ['outerwear', 'footwear'].includes(garment.category)),
         ];
 
+    const slots = {
+        top: { y: 47, height: 380 },
+        bottom: { y: 449, height: 625 },
+        outerwear: { y: 47, height: 500 },
+        footwear: { y: 580, height: 494 },
+    };
+
     columns.forEach((column, index) => {
-        const x = index === 0 ? 44 : 469;
-        const columnWidth = 387;
+        const columnWidth = columns.length === 1 ? 580 : 387;
+        const x = columns.length === 1 ? (width - columnWidth) / 2 : index === 0 ? 44 : 469;
 
         column.forEach((cutout) => {
-            const slot = column.length === 1
-                ? { y: 180, height: 765 }
-                : {
-                    top: { y: 47, height: 380 },
-                    bottom: { y: 449, height: 625 },
-                    outerwear: { y: 47, height: 500 },
-                    footwear: { y: 580, height: 494 },
-                }[cutout.garment.category];
-            const scale = Math.min(columnWidth / cutout.width, slot.height / cutout.height);
-            const drawnWidth = cutout.width * scale;
-            const drawnHeight = cutout.height * scale;
-
-            brush.drawImage(
-                cutout.sample, cutout.left, cutout.top, cutout.width, cutout.height,
-                x + (columnWidth - drawnWidth) / 2, slot.y + (slot.height - drawnHeight) / 2, drawnWidth, drawnHeight,
-            );
+            const slot = column.length === 1 ? { y: 180, height: 765 } : slots[cutout.garment.category];
+            drawCutout(brush, cutout, {
+                x,
+                y: slot.y * garmentHeightScale,
+                width: columnWidth,
+                height: slot.height * garmentHeightScale,
+            });
         });
     });
+
+    if (accessory) {
+        drawCutout(brush, accessory, { x: (width - 290) / 2, y: 890, width: 290, height: 190 });
+    }
 }
 
-export function mountOutfitImage(root, day, automatic) {
+export function mountOutfitImage(root, day, cutoutCache) {
     const compose = root.querySelector('[data-compose-outfit]');
     const status = root.querySelector('[data-compose-status]');
-    const problemsList = root.querySelector('[data-compose-problems]');
+    const problems = root.querySelector('[data-compose-problems]');
+    const problemsList = problems.querySelector('[data-compose-links]');
     const figure = root.querySelector('[data-outfit-image]');
     const canvas = figure.querySelector('canvas');
 
     const download = root.querySelector('[data-download-outfit]');
 
-    function showProblems(problems) {
-        status.textContent = 'Prepara estas fotos para incluir todas las prendas en la imagen.';
-        problemsList.replaceChildren(...problems.map(({ garment, action }) => {
+    function showProblems(missingPhotos, hasComposition) {
+        problemsList.replaceChildren(...missingPhotos.map(({ garment, action }) => {
             const item = document.createElement('li');
             const link = document.createElement('a');
             link.className = 'font-semibold underline underline-offset-4';
@@ -137,54 +166,59 @@ export function mountOutfitImage(root, day, automatic) {
             item.append(link);
             return item;
         }));
-        problemsList.hidden = false;
-        compose.hidden = true;
+        problems.open = !hasComposition;
+        problems.hidden = false;
     }
 
     async function composeImage() {
+        if (!root.isConnected || compose.disabled) {
+            return;
+        }
+
         compose.disabled = true;
-        problemsList.hidden = true;
+        compose.hidden = true;
+        problems.hidden = true;
         status.textContent = 'Preparando la imagen del outfit…';
 
         try {
             const cutouts = [];
-            const problems = [];
+            const missingPhotos = [];
             for (const garment of day.garments) {
                 if (!garment.photo_url) {
-                    problems.push({ garment, action: 'Agregar foto' });
+                    missingPhotos.push({ garment, action: 'Agregar foto' });
                     continue;
                 }
 
-                const cutout = await loadCutout(garment).catch(() => null);
+                if (!cutoutCache.has(garment.photo_url)) {
+                    cutoutCache.set(garment.photo_url, loadCutout(garment).catch(() => null));
+                }
+
+                const cutout = await cutoutCache.get(garment.photo_url);
                 if (!root.isConnected) {
                     return;
                 }
                 if (cutout) {
                     cutouts.push(cutout);
                 } else {
-                    problems.push({ garment, action: 'Revisar foto y quitar fondo' });
+                    missingPhotos.push({ garment, action: 'Revisar foto y quitar fondo' });
                 }
             }
 
-            if (problems.length) {
-                showProblems(problems);
-                return;
+            if (missingPhotos.length) {
+                showProblems(missingPhotos, cutouts.length > 0);
             }
 
-            if (cutouts.length < 2) {
-                status.textContent = 'Agrega otra prenda al clóset para formar un outfit con imagen.';
+            if (cutouts.length === 0) {
+                status.textContent = 'Prepara al menos una foto sin fondo para ver la imagen del outfit.';
                 return;
             }
 
             paintOutfit(canvas, cutouts);
-            canvas.setAttribute('aria-label', 'Outfit sobre fondo de lino: ' + cutouts.map(({ garment }) => garment.name).join(', '));
+            canvas.setAttribute('aria-label', 'Imagen del outfit: ' + cutouts.map(({ garment }) => garment.name).join(', '));
             figure.hidden = false;
-            compose.hidden = true;
-            root.parentElement.dataset.composed = 'true';
-            if (!automatic) {
-                download.focus({ preventScroll: true });
-            }
-            status.textContent = '';
+            status.textContent = missingPhotos.length
+                ? 'La imagen muestra ' + cutouts.length + ' de ' + day.garments.length + ' prendas.'
+                : '';
         } catch {
             status.textContent = 'No pudimos crear la imagen. Inténtalo de nuevo.';
             compose.hidden = false;
@@ -209,9 +243,5 @@ export function mountOutfitImage(root, day, automatic) {
     });
 
     compose.addEventListener('click', composeImage);
-    if (automatic) {
-        composeImage();
-    } else {
-        compose.hidden = day.garments.length === 0;
-    }
+    return composeImage;
 }

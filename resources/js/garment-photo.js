@@ -98,6 +98,7 @@ export function mountGarmentPhoto(form) {
 
         const request = new AbortController();
         pending = request;
+        const timeout = setTimeout(() => request.abort('timeout'), 45000);
         removeBackground.disabled = true;
         submit.disabled = true;
         status.textContent = 'Quitando el fondo…';
@@ -127,8 +128,10 @@ export function mountGarmentPhoto(form) {
                 const message = {
                     401: 'Tu sesión venció. Vuelve a iniciar sesión.',
                     419: 'Tu sesión venció. Actualiza la página para continuar.',
+                    413: 'La foto supera el límite de subida. Prueba con una imagen más pequeña.',
                     422: payload.errors?.photo?.[0],
                     429: 'El recorte está ocupado. Intenta en unos segundos.',
+                    503: payload.message,
                 }[response.status];
                 throw new Error(message ?? 'El recorte no está disponible. Puedes conservar la foto o volver a intentar.');
             }
@@ -148,9 +151,14 @@ export function mountGarmentPhoto(form) {
             useCutout.focus({ preventScroll: true });
         } catch (error) {
             if (pending === request) {
-                status.textContent = error instanceof TypeError ? 'No pudimos conectar con el servicio de recorte.' : error.message;
+                if (request.signal.reason === 'timeout') {
+                    status.textContent = 'El recorte tardó demasiado. Puedes volver a intentarlo o conservar la foto original.';
+                } else {
+                    status.textContent = error instanceof TypeError ? 'Se perdió la conexión. Vuelve a intentar el recorte.' : error.message;
+                }
             }
         } finally {
+            clearTimeout(timeout);
             if (pending === request) {
                 pending = undefined;
                 removeBackground.disabled = false;

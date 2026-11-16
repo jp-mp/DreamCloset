@@ -21,7 +21,7 @@ class ClothingItemFactory extends Factory
         return [
             'user_id' => User::factory(),
             'name' => fake()->words(2, true),
-            'category' => fake()->randomElement(ClothingItem::CATEGORIES),
+            'category' => fake()->randomElement(array_keys(ClothingItem::CATEGORIES)),
             'color' => fake()->safeColorName(),
             'season' => 'all',
             'warmth' => 'medium',

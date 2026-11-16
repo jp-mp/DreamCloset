@@ -4,12 +4,7 @@
 
 @section('content')
     @php
-        $categories = [
-            'top' => 'Parte superior',
-            'bottom' => 'Parte inferior',
-            'outerwear' => 'Abrigo',
-            'footwear' => 'Calzado',
-        ];
+        $categories = \App\Models\ClothingItem::CATEGORIES;
         $requestedCategory = request()->query('category');
         $category = is_string($requestedCategory) && isset($categories[$requestedCategory]) ? $requestedCategory : '';
     @endphp

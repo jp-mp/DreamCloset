@@ -24,7 +24,7 @@
                 @endif
 
                 <x-form-field name="name" :value="$item?->name" label="Nombre de la prenda" maxlength="100" placeholder="Por ejemplo, Chaqueta de mezclilla" required />
-                <x-form-field name="category" :value="$item?->category" label="Categoría" :options="['' => 'Elige una categoría', 'top' => 'Parte superior', 'bottom' => 'Parte inferior', 'outerwear' => 'Abrigo', 'footwear' => 'Calzado']" required />
+                <x-form-field name="category" :value="$item?->category" label="Categoría" :options="['' => 'Elige una categoría', ...\App\Models\ClothingItem::CATEGORIES]" required />
                 <x-form-field name="color" :value="$item?->color" label="Color (opcional)" maxlength="50" />
 
                 <div class="grid gap-5 sm:grid-cols-2">
